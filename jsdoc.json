@@ -1,0 +1,49 @@
+{
+    "source": {
+        // In include you have to add the folder(s) you want to include
+        // or individual file(s) you want to include.
+        // path to folder(s) or file(s) should be relative to jsdoc.json
+        // file
+        "include": [
+            "src",
+            "README.md",
+            "examples/html"
+        ]
+    },
+
+    "opts": {
+        "encoding": "utf8",
+        "readme": "./README.md",
+        // Output folder.
+        "destination": "docs/",
+        "recurse": true,
+        "verbose": true,
+        "template": "./node_modules/ink-docstrap/template"
+    },
+    "tags": {
+        "allowUnknownTags": true
+    },
+    "plugins": ["plugins/markdown"],
+    "templates": {
+        "logoFile": "",
+        "cleverLinks": false,
+        "monospaceLinks": false,
+        "dateFormat": "ddd MMM Do YYYY",
+        "outputSourceFiles": true,
+        "outputSourcePath": true,
+        "systemName": "Mojo Perception API",
+        "footer": "",
+        "copyright": "Hoomano Copyright © 2022.",
+        "navType": "vertical",
+        "theme": "paper",
+        "linenums": true,
+        "collapseSymbols": false,
+        "inverseNav": true,
+        "protocol": "html://",
+        "methodHeadingReturns": false
+    },
+    "markdown": {
+        "parser": "gfm",
+        "hardwrap": true
+    }
+}

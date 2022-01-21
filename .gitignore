@@ -1,0 +1,43 @@
+node_modules
+_site
+
+.idea
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+
+# Coverage
+coverage
+
+# Transpiled files
+build/
+dist/
+
+# VS Code
+.vscode
+!.vscode/tasks.js
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Lerna
+.changelog
+
+# Tests
+tests/cypress/setup/dist
+tests/cypress/videos/
+tests/cypress/snapshots/actual
+tests/cypress/snapshots/diff
