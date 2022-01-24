@@ -71,5 +71,5 @@ You can use the `auth_token` and given `host_name`, `port` and `user_namespace` 
 ## mojo-perception-js Documentation
 
 * [mojo-perception-js Docs & API References](https://developer.mojo.ai)
-* [mojo-perception-js Tutorials](https://developer.mojo.ai)
+* [mojo-perception-js Tutorials](https://developer.mojo.ai/tutorial-getting-started-html.html)
 
