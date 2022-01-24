@@ -1,6 +1,6 @@
 {
   "name": "mojo-perception",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Mojo Perception Javascript API",
   "keywords": [
     "emotion",
@@ -78,24 +78,11 @@
     "node >=0.1.90"
   ],
   "files": [
-    "*.js",
-    "*.css",
-    "themes/*",
-    "minified/*"
+    "dist/**/*.js",
   ],
+  "unpkg": "dist/minified/mojo-perception.min.js",
+  "jsdelivr": "dist/minified/mojo-perception.min.js",
   "license": "MIT",
-  "changelog": {
-    "labels": {
-      "new feature": ":rocket: New Feature",
-      "breaking": ":boom: Breaking Change",
-      "bug": ":bug: Bug Fix",
-      "polish": ":nail_care: Polish",
-      "documentation": ":memo: Documentation",
-      "internal": ":house: Internal",
-      "performance": ":running_woman: Performance"
-    },
-    "cacheDir": ".changelog"
-  },
   "dependencies": {
     "ink-docstrap": "^1.3.2",
     "install": "^0.13.0"
