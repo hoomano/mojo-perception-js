@@ -7,7 +7,7 @@ Use Mojo Perception API as a Javascript module both for web and Node.js applicat
 
 Use `npm` to install mojo-perception-js module:
 ```
-npm install mojo-perception-js
+npm install mojo-perception
 ```
 
 ## Usage
