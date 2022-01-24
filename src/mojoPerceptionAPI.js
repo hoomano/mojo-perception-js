@@ -169,6 +169,18 @@ class MojoPerceptionAPI {
     this.videoSectionName = "video_display";
 
     /**
+     * @prop HTML document node to attach video
+     * @type {Node}
+     */
+    this.nodeToAttachVideo = null;
+
+    /**
+     * @prop optional parameters for the HTML video node element
+     * @type {json}
+     */
+    this.videoNodeParameters = null;
+
+    /**
      *@prop Indicate if video is available in browser mode
      */
     this.videoAvailable = false;
@@ -182,7 +194,6 @@ class MojoPerceptionAPI {
      *@prop called when first emit to SocketIO stream server has been done
      */
     this.firstEmitDoneCallback;
-
 
     /**
      * @prop called if an error occurs
@@ -336,11 +347,26 @@ class MojoPerceptionAPI {
       video.muted = true;
       video.playsinline = true;
       video.id = this.videoSectionName;
-      video.width = 1;
-      video.style.zIndex = -1;
-      video.className = "fixed-top";
+      // Set parameters to hide video if no parent node given
+      if (this.nodeToAttachVideo == null) {
+        video.width = 1;
+        video.style.zIndex = -1;
+        video.className = "fixed-top";
+      } else {
+        if (this.videoNodeParameters != null){
+          for (var paramKey in this.videoNodeParameters) {
+            video.setAttribute(paramKey, this.videoNodeParameters[paramKey])
+          }
+        }
+      }
 
-      document.body.appendChild(video);
+      // If a node is given, we want to attach the video to it
+      if (this.nodeToAttachVideo != null) {
+        this.nodeToAttachVideo.append(video);
+      } else {
+        document.body.appendChild(video);
+      }
+
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
@@ -447,6 +473,7 @@ class MojoPerceptionAPI {
       });
       if (!this.firstEmitDone) {
         this.firstEmitDone = true;
+        this.sending = true;
         this.firstEmitDoneCallback();
       }
       return true;
@@ -487,13 +514,21 @@ class MojoPerceptionAPI {
    */
   async stopFacialExpressionRecognitionAPI() {
     try {
+      if (this.sending == false) {
+        return;
+      }
       this.sending = false;
 
       /// Remove the video if used in browser environment
       if (typeof window !== "undefined") {
         var video = document.getElementById(this.videoSectionName);
         if (video !== undefined) {
-          document.body.removeChild(video);
+          if (this.nodeToAttachVideo != null) {
+            this.nodeToAttachVideo.removeChild(video);
+          } else {
+            document.body.removeChild(video);  
+          }
+          
         }
       }
 
