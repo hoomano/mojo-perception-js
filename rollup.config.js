@@ -9,7 +9,6 @@ import { terser } from 'rollup-plugin-terser';
 import { version } from './package.json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-import nodePolyfills from 'rollup-plugin-node-polyfills';
 
 const inputPath = './src';
 const outputPath = './dist';

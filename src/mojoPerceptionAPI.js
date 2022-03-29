@@ -24,15 +24,12 @@
  * =============================================================================
  */
 
+//import * as faceLandmarksDetection from "@tensorflow-models/face-landmarks-detection";
+
 if (typeof window === "undefined") {
   const faceLandmarksDetection = require("@tensorflow-models/face-landmarks-detection");
   global.faceLandmarksDetection = faceLandmarksDetection;
 }
-
-/**
- * @todo fix rollup dependency pb with facelandmark dependency for browser usage
- */
-// import { faceLandmarksDetection } from '@tensorflow-models/face-landmarks-detection';
 
 class MojoPerceptionAPI {
   /**
@@ -125,6 +122,26 @@ class MojoPerceptionAPI {
      *@prop Variable to use the model that extract anonymized facial keypoints
      */
     this.model;
+
+    /**
+     *@prop indicates when the asynchronous model loading procedure is done
+     */
+    this.modelLoaded = false;
+
+    /**
+     * @prop maximum waiting time for the model to be downloaded after a camera launch. 30 sec default.
+     */
+    this.maxWaitingTime = 30000; // milliseconds
+
+    /**
+     * @prop step for retrying to check if model is downloaded. 100 ms default.
+     */
+    this.stepWaitingTime = 100; // milliseconds
+
+    /**
+     * estimate the waiting time of the model to be downloaded in ms.
+     */
+    this.currentWaitingTime = 0;
 
     /**
      *@prop handler for real-time attention calculation received
@@ -234,25 +251,34 @@ class MojoPerceptionAPI {
    * @return {bool} true
    */
   async init() {
-    this.attentionCallback = this.defaultCallback;
-    this.amusementCallback = this.defaultCallback;
-    this.confusionCallback = this.defaultCallback;
-    this.surpriseCallback = this.defaultCallback;
-    this.yawingCallback = this.defaultCallback;
-    this.pitchingCallback = this.defaultCallback;
+    try {
+      this.attentionCallback = this.defaultCallback;
+      this.amusementCallback = this.defaultCallback;
+      this.confusionCallback = this.defaultCallback;
+      this.surpriseCallback = this.defaultCallback;
+      this.yawingCallback = this.defaultCallback;
+      this.pitchingCallback = this.defaultCallback;
 
-    this.warmUpDoneCallback = this.defaultCallback;
+      this.warmUpDoneCallback = this.defaultCallback;
 
-    this.onErrorCallback = this.defaultCallback;
+      this.onErrorCallback = this.defaultCallback;
 
-    this.firstEmitDoneCallback = this.defaultFirstEmitDoneFallback;
+      this.firstEmitDoneCallback = this.defaultFirstEmitDoneFallback;
 
-    this.fps = 0;
-    // Load the model to get anonymzed facial keypoints
-    this.model = await faceLandmarksDetection.load(
-      faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
-    );
-    return true;
+      this.fps = 0;
+      // Load the model to get anonymzed facial keypoints
+      this.model = await faceLandmarksDetection.load(
+        faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+      );
+
+      this.modelLoaded = true;
+      console.debug("Model loaded");
+
+      return true;
+    } catch (e) {
+      this.onErrorCallback(e);
+      console.error("Error during initialization : ${e} " + e);
+    }
   }
 
   /**
@@ -271,10 +297,34 @@ class MojoPerceptionAPI {
     return;
   }
 
+  /**
+   * Waiting loop for initialization purpose, if API calls done before model downloaded
+   */
+  async waitLoadingModelFinished() {
+    var self = this;
+    setTimeout(function () {
+      if (self.currentWaitingTime > self.maxWaitingTime) {
+        console.warn(`Model loading takes longer than ${self.maxWaitingTime} milliseconds which may cause timeout issues`);
+          return;
+      }
+      if (self.modelLoaded === undefined || self.modelLoaded == false || self.currentWaitingTime >= self.maxWaitingTime) {
+        self.currentWaitingTime += self.stepWaitingTime;
+        self.waitLoadingModelFinished();
+      } else {
+        console.debug("init done. Starting camera now : moodelLoaded = " + self.modelLoaded);
+        return;
+      }
+    }, self.stepWaitingTime);
+  }
+
+  /**
+   * While model is loaded, get access to the camera and connect to socketIO
+   */
   async startCameraAndConnectAPI() {
     try {
-      if (this.model == null) {
-        await this.init();
+      if (this.model == null || this.modelLoaded == false) {
+        console.debug("this.model is null or modelLoaded==false => wait for init to stop");
+        await this.waitLoadingModelFinished();
       }
 
       /// Context browser
@@ -353,9 +403,9 @@ class MojoPerceptionAPI {
         video.style.zIndex = -1;
         video.className = "fixed-top";
       } else {
-        if (this.videoNodeParameters != null){
+        if (this.videoNodeParameters != null) {
           for (var paramKey in this.videoNodeParameters) {
-            video.setAttribute(paramKey, this.videoNodeParameters[paramKey])
+            video.setAttribute(paramKey, this.videoNodeParameters[paramKey]);
           }
         }
       }
@@ -421,12 +471,23 @@ class MojoPerceptionAPI {
         return;
       }
 
+      // Check if model already loaded
+      if (this.model == null || this.modelLoaded == false) {
+        console.debug("model not loaded yet");
+        return;
+      }
+
       var now = performance.now();
 
       // Test if firstEmitDone, it means the loop is runing, warm up done call callback once
       if (this.firstEmitDone && !this.warmUpDoneCallbackDone) {
         this.warmUpDoneCallback();
         this.warmUpDoneCallbackDone = true;
+      }
+
+      // don't proceed if stopped asked
+      if (this.sending == false) {
+        return;
       }
 
       const predictions = await this.model.estimateFaces({
@@ -526,9 +587,8 @@ class MojoPerceptionAPI {
           if (this.nodeToAttachVideo != null) {
             this.nodeToAttachVideo.removeChild(video);
           } else {
-            document.body.removeChild(video);  
+            document.body.removeChild(video);
           }
-          
         }
       }
 
