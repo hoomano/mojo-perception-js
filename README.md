@@ -7,6 +7,10 @@ Use Mojo Perception API as a Javascript module both for web and Node.js applicat
 
 Full documentation of the API can be found at : [https://docs.mojo.ai](https://docs.mojo.ai)
 
+## API Key
+
+To get your API Key, register for a free trial version here : [https://hoomano.com/free-facial-expression-recognition](https://hoomano.com/free-facial-expression-recognition)
+
 ## Installation
 
 Use `npm` to install mojo-perception-js module:
