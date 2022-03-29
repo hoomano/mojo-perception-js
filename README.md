@@ -11,7 +11,7 @@ https://user-images.githubusercontent.com/8493278/160576236-d91c099e-8452-4d0c-8
 
 ## 📚 Full Documentation
 
-Full documentation of the API can be found at : [https://docs.mojo.ai](https://docs.mojo.ai)
+Full documentation of the API can be found at : [https://docs.mojo.ai](https://docs.mojo.ai/facial-expression-recognition/overview/)
 
 ## API Key
 
@@ -84,6 +84,6 @@ You can use the `auth_token` and given `host_name`, `port` and `user_namespace` 
 
 ## mojo-perception-js Documentation
 
-* [mojo-perception-js Docs & API References](https://developer.mojo.ai)
-* [mojo-perception-js Tutorials](https://developer.mojo.ai/tutorial-getting-started-html.html)
+* [mojo-perception-js Docs & API References](https://docs.mojo.ai/facial-expression-recognition/overview/)
+* [mojo-perception-js Tutorials](https://docs.mojo.ai/facial-expression-recognition/tutorials/create-web-app-with-facial-expression-recognition/)
 
