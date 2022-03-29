@@ -2,7 +2,7 @@
 
 Use Mojo Perception API as a Javascript module both for web and Node.js applications.
 
-
+✅ 3 social cues + ❤️ 3 emotions in⚡️ real-time & 🔐 private by design for your web app.
 
 
 https://user-images.githubusercontent.com/8493278/160576236-d91c099e-8452-4d0c-8549-7a8d73dfde36.mp4
