@@ -3,6 +3,12 @@
 Use Mojo Perception API as a Javascript module both for web and Node.js applications.
 
 
+
+
+https://user-images.githubusercontent.com/8493278/160576236-d91c099e-8452-4d0c-8549-7a8d73dfde36.mp4
+
+
+
 ## 📚 Full Documentation
 
 Full documentation of the API can be found at : [https://docs.mojo.ai](https://docs.mojo.ai)
