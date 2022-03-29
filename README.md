@@ -3,6 +3,10 @@
 Use Mojo Perception API as a Javascript module both for web and Node.js applications.
 
 
+## 📚 Full Documentation
+
+Full documentation of the API can be found at : [https://docs.mojo.ai](https://docs.mojo.ai)
+
 ## Installation
 
 Use `npm` to install mojo-perception-js module:
