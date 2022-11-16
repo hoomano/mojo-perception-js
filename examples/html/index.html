@@ -1,67 +1,84 @@
 <!doctype html>
 
 <html lang="en">
+
 <head>
-    <meta charset="utf-8" />
-    <link rel="shortcut icon" href="#">
+  <meta charset="utf-8" />
+  <link rel="shortcut icon" href="#">
 
-    <!-- Title -->
-    <title>Hoomano - Emotion-based Technology</title>
+  <!-- Title -->
+  <title>Hoomano - Emotion-based Technology</title>
 
-    <!-- Mojo Facial Expression API dependencies -->
-    <script src="https://unpkg.com/@tensorflow/tfjs-core@2.4.0/dist/tf-core.js"></script>
-    <script src="https://unpkg.com/@tensorflow/tfjs-converter@2.4.0/dist/tf-converter.js"></script>
-    <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@2.4.0/dist/tf-backend-webgl.js"></script>
-    <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@2.4.0/dist/tf-backend-wasm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
-    <script src="https://unpkg.com/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@3.0.0/dist/socket.io.min.js"></script>
+  <!-- Mojo Facial Expression API dependencies -->
+  <script src="https://unpkg.com/@tensorflow/tfjs-core@2.4.0/dist/tf-core.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-converter@2.4.0/dist/tf-converter.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-webgl@2.4.0/dist/tf-backend-webgl.js"></script>
+  <script src="https://unpkg.com/@tensorflow/tfjs-backend-wasm@2.4.0/dist/tf-backend-wasm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
+  <script
+    src="https://unpkg.com/@tensorflow-models/face-landmarks-detection@0.0.1/dist/face-landmarks-detection.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@3.0.0/dist/socket.io.min.js"></script>
 
 
-    
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script type="text/javascript" src="./mojo-perception-0.0.1.js"></script>
-    <script type="text/javascript" src="./mojo-perception-web-example.js"></script>
 
-    <style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script type="text/javascript" src="https://developer.mojo.ai/mojo-perception.min.js"></script>
+  <script type="text/javascript" src="./mojo-perception-web-example.js"></script>
+
+
+  <style>
     .loader {
       border: 5px solid #f3f3f3;
       border-radius: 50%;
       border-top: 5px solid #3498db;
       width: 20px;
       height: 20px;
-      -webkit-animation: spin 1s linear infinite; /* Safari */
+      -webkit-animation: spin 1s linear infinite;
+      /* Safari */
       animation: spin 1s linear infinite;
     }
 
     /* Safari */
     @-webkit-keyframes spin {
-      0% { -webkit-transform: rotate(0deg); }
-      100% { -webkit-transform: rotate(360deg); }
+      0% {
+        -webkit-transform: rotate(0deg);
+      }
+
+      100% {
+        -webkit-transform: rotate(360deg);
+      }
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
-    </style>
+  </style>
 </head>
 
 <body>
-    <h1>Hello World</h1>
-    <h2 id="warningHTTPS"></h2>
-    <p>Please press this button to start Mojo Perception API Example</p>
-    <input id="start_button" type="button" onclick="startExample()" name="start" value="Start Example">
-    <input id="stop_button" type="button" onclick="stopExample()" name="start" value="Stop Example" hidden>
-    <div id="loading_spinner" class="loader" hidden></div>
-    <p>👇 Below, you will see the attention value from the callback<br></p>
-    <h2>
-        <div id="attention_callback_dislay">.</div>
-    </h2>
-    
-    <p><div id="fps"></div></p>
-    <p><div id="on_error_callback_dislay"></div>
-    
+  <h1>Hello World</h1>
+  <h2 id="warningHTTPS"></h2>
+  <p>Please press this button to start Mojo Perception API Example</p>
+  <input id="start_button" type="button" onclick="startExample()" name="start" value="Start Example">
+  <input id="stop_button" type="button" onclick="stopExample()" name="start" value="Stop Example" hidden>
+  <div id="loading_spinner" class="loader" hidden></div>
+  <p>👇 Below, you will see the attention value from the callback<br></p>
+  <h2>
+    <div id="attention_callback_dislay">.</div>
+  </h2>
+
+  <p>
+  <div id="fps"></div>
+  </p>
+  <p>
+  <div id="on_error_callback_dislay"></div>
+
 </body>
 
 </html>

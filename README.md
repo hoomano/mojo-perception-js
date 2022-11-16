@@ -2,26 +2,18 @@
 
 Use Mojo Perception API as a Javascript module both for web and Node.js applications.
 
-✅ 3 social cues + ❤️ 3 emotions in⚡️ real-time & 🔐 private by design for your web app.
-
-
-https://user-images.githubusercontent.com/8493278/160576236-d91c099e-8452-4d0c-8549-7a8d73dfde36.mp4
-
-
-
-## 📚 Full Documentation
-
-Full documentation of the API can be found at : [https://docs.mojo.ai](https://docs.mojo.ai/facial-expression-recognition/overview/)
-
-## API Key
-
-To get your API Key, register for a free trial version here : [https://hoomano.com/free-facial-expression-recognition](https://hoomano.com/free-facial-expression-recognition)
 
 ## Installation
 
-Use `npm` to install mojo-perception-js module:
+
+If you use `npm`, install mojo-perception-js module:
 ```
 npm install mojo-perception
+```
+
+If you only need a browser usage, add the script in the `<head>` section
+```
+<script type="text/javascript" src="https://developer.mojo.ai/mojo-perception.min.js"></script>
 ```
 
 ## Usage
@@ -84,6 +76,6 @@ You can use the `auth_token` and given `host_name`, `port` and `user_namespace` 
 
 ## mojo-perception-js Documentation
 
-* [mojo-perception-js Docs & API References](https://docs.mojo.ai/facial-expression-recognition/overview/)
-* [mojo-perception-js Tutorials](https://docs.mojo.ai/facial-expression-recognition/tutorials/create-web-app-with-facial-expression-recognition/)
+* [mojo-perception-js Docs & API References](https://developer.mojo.ai)
+* [mojo-perception-js Tutorials](https://developer.mojo.ai/tutorial-getting-started-html.html)
 

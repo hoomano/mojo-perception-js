@@ -87,15 +87,15 @@ class MojoPerceptionAPI {
 
     /**
      *@prop Default emotions computed by the API
-     *@default ["attention","confusion","surprise","amusement","pitching","yawing"]
+     *@default ["attention","confusion","surprise","amusement","engagement","interaction"]
      */
     this.emotions = [
       "attention",
       "confusion",
       "surprise",
       "amusement",
-      "pitching",
-      "yawing",
+      "engagement",
+      "interaction"
     ];
 
     /**
@@ -164,14 +164,14 @@ class MojoPerceptionAPI {
     this.surpriseCallback;
 
     /**
-     *@prop handler for real-time pitching calculation received
+     *@prop handler for real-time engagement calculation received
      */
-    this.yawingCallback;
+    this.engagementCallback;
 
     /**
-     *@prop handler for real-time yawing calculation received
+     *@prop handler for real-time interaction calculation received
      */
-    this.pitchingCallback;
+    this.interactionCallback;
 
     /**
      *@prop called when camera is loaded + socketio connected + facemesh calculation loop warmed up
@@ -198,11 +198,6 @@ class MojoPerceptionAPI {
     this.videoNodeParameters = null;
 
     /**
-     *@prop Indicate if video is available in browser mode
-     */
-    this.videoAvailable = false;
-
-    /**
      *@prop Indicate if the first emit has been done to the SocketIO stream server
      */
     this.firstEmitDone = false;
@@ -216,6 +211,19 @@ class MojoPerceptionAPI {
      * @prop called if an error occurs
      */
     this.onErrorCallback;
+
+    /**
+     * @prop stream of the user camera if granted, default null
+     */
+    this.stream = null;
+
+    /**
+     * @prop True if camera access has been successfully granted by the user, default false
+     */
+    this.isCameraAccessGranted = false;
+
+
+
   }
 
   /**
@@ -256,8 +264,8 @@ class MojoPerceptionAPI {
       this.amusementCallback = this.defaultCallback;
       this.confusionCallback = this.defaultCallback;
       this.surpriseCallback = this.defaultCallback;
-      this.yawingCallback = this.defaultCallback;
-      this.pitchingCallback = this.defaultCallback;
+      this.engagementCallback = this.defaultCallback;
+      this.interactionCallback = this.defaultCallback;
 
       this.warmUpDoneCallback = this.defaultCallback;
 
@@ -305,7 +313,7 @@ class MojoPerceptionAPI {
     setTimeout(function () {
       if (self.currentWaitingTime > self.maxWaitingTime) {
         console.warn(`Model loading takes longer than ${self.maxWaitingTime} milliseconds which may cause timeout issues`);
-          return;
+        return;
       }
       if (self.modelLoaded === undefined || self.modelLoaded == false || self.currentWaitingTime >= self.maxWaitingTime) {
         self.currentWaitingTime += self.stepWaitingTime;
@@ -337,32 +345,39 @@ class MojoPerceptionAPI {
          */
         console.log("TODO setup camera from node library");
       }
+      if (this.isCameraAccessGranted != true) {
+        this.onErrorCallback("No camera available");
+        return;
+      }
 
       // connect to socketIO
       this.apiSocket = io(this.socketIoURI, {
         transports: ["websocket", "polling"],
+        auth: {
+          "token": this.auth_token
+        }
       });
 
       // callback on messages
       if (this.subscribeRealtimeOutput) {
         this.apiSocket.on("calculation", (msg) => {
           if (msg["surprise"] != null) {
-            this.surpriseCallback(parseFloat(msg["surprise"]));
+            this.surpriseCallback(msg["surprise"]);
           }
           if (msg["amusement"] != null) {
-            this.amusementCallback(parseFloat(msg["amusement"]));
+            this.amusementCallback(msg["amusement"]);
           }
           if (msg["confusion"] != null) {
-            this.confusionCallback(parseFloat(msg["confusion"]));
+            this.confusionCallback(msg["confusion"]);
           }
           if (msg["attention"] != null) {
-            this.attentionCallback(parseFloat(msg["attention"]));
+            this.attentionCallback(msg["attention"]);
           }
-          if (msg["pitching"] != null) {
-            this.pitchingCallback(parseFloat(msg["pitching"]));
+          if (msg["engagement"] != null) {
+            this.engagementCallback(msg["engagement"]);
           }
-          if (msg["yawing"] != null) {
-            this.yawingCallback(parseFloat(msg["yawing"]));
+          if (msg["interaction"] != null) {
+            this.interactionCallback(msg["interaction"]);
           }
         });
       }
@@ -373,7 +388,7 @@ class MojoPerceptionAPI {
         this.onErrorCallback(msg);
         await this.stopFacialExpressionRecognitionAPI();
       });
-
+      document.getElementById(this.videoSectionName).play();
       return new Promise((resolve) => {
         this.apiSocket.on("connect", () => {
           this.initialized = true;
@@ -393,6 +408,17 @@ class MojoPerceptionAPI {
   async setupCameraFromBrowser() {
     try {
       var video = document.createElement("video");
+      var isIphone = /iPhone/.test(navigator.userAgent);
+      if (isIphone && this.nodeToAttachVideo == null) {
+        this.nodeToAttachVideo = document.createElement("input_video");
+        document.body.appendChild(this.nodeToAttachVideo);
+        this.videoNodeParameters = {
+          autoplay: true,
+          muted: true,
+          playsinline: true,
+        };
+        this.nodeToAttachVideo.hidden = true;
+      }
       video.autoplay = true;
       video.muted = true;
       video.playsinline = true;
@@ -402,20 +428,16 @@ class MojoPerceptionAPI {
         video.width = 1;
         video.style.zIndex = -1;
         video.className = "fixed-top";
+        document.body.appendChild(video);
       } else {
         if (this.videoNodeParameters != null) {
           for (var paramKey in this.videoNodeParameters) {
             video.setAttribute(paramKey, this.videoNodeParameters[paramKey]);
           }
         }
+        this.nodeToAttachVideo.append(video);
       }
 
-      // If a node is given, we want to attach the video to it
-      if (this.nodeToAttachVideo != null) {
-        this.nodeToAttachVideo.append(video);
-      } else {
-        document.body.appendChild(video);
-      }
 
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
@@ -426,7 +448,7 @@ class MojoPerceptionAPI {
         },
       });
 
-      this.videoAvailable = true;
+      this.isCameraAccessGranted = this.stream == null ? false : true;
       video.srcObject = this.stream;
       video.style.webkitTransform = "scaleX(-1)";
       video.style.transform = "scaleX(-1)";
@@ -457,7 +479,7 @@ class MojoPerceptionAPI {
         );
         return;
       }
-      if (this.videoAvailable != true) {
+      if (this.isCameraAccessGranted != true) {
         console.warn(
           "Video not available, should not call computeAnonymizedFaceMeshFromHTMLVideoTag"
         );
@@ -528,7 +550,6 @@ class MojoPerceptionAPI {
       var d = new Date();
       this.apiSocket.emit("facemesh", {
         facemesh: facemesh,
-        token: this.auth_token,
         timestamp: d.toISOString(),
         output: this.emotions,
       });

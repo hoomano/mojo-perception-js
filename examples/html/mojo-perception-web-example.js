@@ -24,7 +24,6 @@
  * =============================================================================
  */
 
-
 /**
  * API global variable scope
  * @tutorial getting-started-html
@@ -48,8 +47,8 @@ var startExample = async function () {
         /// Process video frame only if accessible
         if (mojoPerception.initialized != true) {
             console.error(
-                "mojoPerception not initialized. Maybe video access? videoAvailable=" +
-                    mojoPerception.videoAvailable
+                "mojoPerception not initialized. Maybe video access? C=isCameraAccessGranted" +
+                mojoPerception.isCameraAccessGranted
             );
         } else {
             async function processVideoFrame() {
@@ -100,18 +99,18 @@ window.stopExample = stopExample;
 
 // Initialization when HTML document ready
 $(document).ready(async function () {
-    // We initilze MojoPerceptionAPI here
+    // We initialize MojoPerceptionAPI here
     // Use your secured token and namespace to load the API.
     // See the README to generate one using your Mojo Perception API Key.
     mojoPerception = await loadMojoPerception(
         // Replace with your <auth_token>
-        "AAeyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE2NDI3ODE4MDEsInN1YiI6IjE4YjNlNTc1LWVlMjYtNDMzMi1hMTJhLTNjMjk3YzRkOWQ0NyIsImV4cCI6MTY0Mjc5NjIwMX0.cMqLM9SkzhbuZTZC9sVOl_VXUqazXEz97VYcaSZcEBM",
+        "auth_token",
         // Replace with <host>
-        "streammojoperceptionapi.dev.hoomano.com",
+        "host",
         // Replace with <port>
-        "943",
+        "port",
         // Replace with <user_namespace>
-        "18b3e575ee264332a12a3c297c4d9d47"
+        "user_namespace",
     );
 
     // We set  options
@@ -126,7 +125,7 @@ $(document).ready(async function () {
     mojoPerception.attentionCallback = function (val) {
         try {
             document.getElementById("attention_callback_dislay").innerHTML =
-                Math.round(val * 100).toString() + "%";
+                Math.round(val["value"] * 100).toString() + "%";
         } catch (e) {
             console.error(e);
         }
@@ -141,12 +140,11 @@ $(document).ready(async function () {
     };
 
     // Error callback to help troubleshoot if required
-    mojoPerception.onErrorCallback = function(error) {
+    mojoPerception.onErrorCallback = function (error) {
         try {
             // Display an error message
             document.getElementById("on_error_callback_dislay").innerHTML = "🙏 Something went wrong: " + error;
-        } catch (e)
-        {
+        } catch (e) {
             console.error("🙏 Something went wrong: " + e);
         }
     }
