@@ -222,6 +222,17 @@ class MojoPerceptionAPI {
      */
     this.isCameraAccessGranted = false;
 
+    /**
+     * @prop x position of the detected user's nose point
+     */
+    this.noseX = null;
+
+
+    /**
+     * @prop video image width
+     */
+    this.videoWidth = null;
+
 
 
   }
@@ -259,34 +270,35 @@ class MojoPerceptionAPI {
    * @return {bool} true
    */
   async init() {
-    try {
-      this.attentionCallback = this.defaultCallback;
-      this.amusementCallback = this.defaultCallback;
-      this.confusionCallback = this.defaultCallback;
-      this.surpriseCallback = this.defaultCallback;
-      this.engagementCallback = this.defaultCallback;
-      this.interactionCallback = this.defaultCallback;
+    return new Promise(async (resolve, reject) => {
+      try {
+        this.attentionCallback = this.defaultCallback;
+        this.amusementCallback = this.defaultCallback;
+        this.confusionCallback = this.defaultCallback;
+        this.surpriseCallback = this.defaultCallback;
+        this.engagementCallback = this.defaultCallback;
+        this.interactionCallback = this.defaultCallback;
 
-      this.warmUpDoneCallback = this.defaultCallback;
+        this.warmUpDoneCallback = this.defaultCallback;
 
-      this.onErrorCallback = this.defaultCallback;
+        this.onErrorCallback = this.defaultCallback;
 
-      this.firstEmitDoneCallback = this.defaultFirstEmitDoneFallback;
+        this.firstEmitDoneCallback = this.defaultFirstEmitDoneFallback;
 
-      this.fps = 0;
-      // Load the model to get anonymzed facial keypoints
-      this.model = await faceLandmarksDetection.load(
-        faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
-      );
+        this.fps = 0;
+        // Load the model to get anonymzed facial keypoints
+        this.model = await faceLandmarksDetection.load(
+          faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+        );
 
-      this.modelLoaded = true;
-      console.debug("Model loaded");
+        this.modelLoaded = true;
 
-      return true;
-    } catch (e) {
-      this.onErrorCallback(e);
-      console.error("Error during initialization : ${e} " + e);
-    }
+        resolve(true);
+      } catch (e) {
+        this.onErrorCallback(e);
+        reject(e);
+      }
+    });
   }
 
   /**
@@ -308,21 +320,19 @@ class MojoPerceptionAPI {
   /**
    * Waiting loop for initialization purpose, if API calls done before model downloaded
    */
-  async waitLoadingModelFinished() {
-    var self = this;
-    setTimeout(function () {
-      if (self.currentWaitingTime > self.maxWaitingTime) {
-        console.warn(`Model loading takes longer than ${self.maxWaitingTime} milliseconds which may cause timeout issues`);
-        return;
-      }
-      if (self.modelLoaded === undefined || self.modelLoaded == false || self.currentWaitingTime >= self.maxWaitingTime) {
-        self.currentWaitingTime += self.stepWaitingTime;
-        self.waitLoadingModelFinished();
-      } else {
-        console.debug("init done. Starting camera now : moodelLoaded = " + self.modelLoaded);
-        return;
-      }
-    }, self.stepWaitingTime);
+  waitLoadingModelFinished() {
+    return new Promise((resolve, reject) => {
+      let timeout = setTimeout(() => {
+        reject("timeout while loading model");
+      }, 10000);
+      const interval = setInterval(() => {
+        if (this.model != null && this.modelLoaded) {
+          clearInterval(interval);
+          clearTimeout(timeout);
+          resolve();
+        }
+      }, 100);
+    });
   }
 
   /**
@@ -331,14 +341,23 @@ class MojoPerceptionAPI {
   async startCameraAndConnectAPI() {
     try {
       if (this.model == null || this.modelLoaded == false) {
-        console.debug("this.model is null or modelLoaded==false => wait for init to stop");
+        console.log("🔴 this.model is null or modelLoaded==false => wait for init to stop");
         await this.waitLoadingModelFinished();
       }
 
       /// Context browser
       if (typeof window !== "undefined") {
         // Set up front-facing camera
-        await this.setupCameraFromBrowser();
+        try {
+          await this.setupCameraFromBrowser();
+        } catch (e) {
+          this.onErrorCallback("Error accessing the camera: " + e);
+          console.error("Error accessing the camera: " + e);
+          console.error(
+            "Video not available. Check if the connection is HTTPS (mandatory):\nhttps://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia"
+          );
+          return;
+        }
       } else {
         /**
          * @todo setup camera in node library mode
@@ -349,7 +368,6 @@ class MojoPerceptionAPI {
         this.onErrorCallback("No camera available");
         return;
       }
-
       // connect to socketIO
       this.apiSocket = io(this.socketIoURI, {
         transports: ["websocket", "polling"],
@@ -406,65 +424,60 @@ class MojoPerceptionAPI {
    * @return {Future} video tag
    */
   async setupCameraFromBrowser() {
-    try {
-      var video = document.createElement("video");
-      var isIphone = /iPhone/.test(navigator.userAgent);
-      if (isIphone && this.nodeToAttachVideo == null) {
-        this.nodeToAttachVideo = document.createElement("input_video");
-        document.body.appendChild(this.nodeToAttachVideo);
-        this.videoNodeParameters = {
-          autoplay: true,
-          muted: true,
-          playsinline: true,
-        };
-        this.nodeToAttachVideo.hidden = true;
-      }
-      video.autoplay = true;
-      video.muted = true;
-      video.playsinline = true;
-      video.id = this.videoSectionName;
-      // Set parameters to hide video if no parent node given
-      if (this.nodeToAttachVideo == null) {
-        video.width = 1;
-        video.style.zIndex = -1;
-        video.className = "fixed-top";
-        document.body.appendChild(video);
-      } else {
-        if (this.videoNodeParameters != null) {
-          for (var paramKey in this.videoNodeParameters) {
-            video.setAttribute(paramKey, this.videoNodeParameters[paramKey]);
-          }
-        }
-        this.nodeToAttachVideo.append(video);
-      }
-
-
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          facingMode: "user",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      });
-
-      this.isCameraAccessGranted = this.stream == null ? false : true;
-      video.srcObject = this.stream;
-      video.style.webkitTransform = "scaleX(-1)";
-      video.style.transform = "scaleX(-1)";
-
-      return new Promise((resolve) => {
-        video.onloadedmetadata = () => {
-          resolve(video);
-        };
-      });
-    } catch (e) {
-      this.onErrorCallback(e);
-      console.error("Error accessing the camera: " + e);
-      console.error(
-        "Video not available. Check if the connection is HTTPS (mandatory):\nhttps://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia"
-      );
+    var video = document.createElement("video");
+    var isIphone = /iPhone/.test(navigator.userAgent);
+    if (isIphone && this.nodeToAttachVideo == null) {
+      this.nodeToAttachVideo = document.createElement("input_video");
+      document.body.appendChild(this.nodeToAttachVideo);
+      this.videoNodeParameters = {
+        autoplay: true,
+        muted: true,
+        playsinline: true,
+      };
+      this.nodeToAttachVideo.hidden = true;
     }
+    video.autoplay = true;
+    video.muted = true;
+    video.playsinline = true;
+    video.id = this.videoSectionName;
+    // Set parameters to hide video if no parent node given
+    if (this.nodeToAttachVideo == null) {
+      video.width = 1;
+      video.style.zIndex = -1;
+      video.className = "fixed-top";
+      document.body.appendChild(video);
+    } else {
+      if (this.videoNodeParameters != null) {
+        for (var paramKey in this.videoNodeParameters) {
+          video.setAttribute(paramKey, this.videoNodeParameters[paramKey]);
+        }
+      }
+      this.nodeToAttachVideo.append(video);
+    }
+
+
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {
+        facingMode: "user",
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    });
+    const videoTrack = this.stream.getVideoTracks()[0];
+    this.videoWidth = videoTrack.getSettings().width;
+
+    this.isCameraAccessGranted = this.stream == null ? false : true;
+    video.srcObject = this.stream;
+    video.style.webkitTransform = "scaleX(-1)";
+    video.style.transform = "scaleX(-1)";
+
+    return new Promise((resolve) => {
+      video.onloadedmetadata = () => {
+        resolve(video);
+      };
+    });
+
   }
 
   /**
@@ -474,14 +487,14 @@ class MojoPerceptionAPI {
   async computeAnonymizedFaceMeshFromHTMLVideoTag() {
     try {
       if (typeof window === "undefined") {
-        console.warn(
-          "Impossible to computeAnonymizedFaceMeshFromHTMLVideoTag if not in browser context"
+        console.log(
+          "🔴 Impossible to computeAnonymizedFaceMeshFromHTMLVideoTag if not in browser context"
         );
         return;
       }
       if (this.isCameraAccessGranted != true) {
-        console.warn(
-          "Video not available, should not call computeAnonymizedFaceMeshFromHTMLVideoTag"
+        console.log(
+          "🔴 Video not available, should not call computeAnonymizedFaceMeshFromHTMLVideoTag"
         );
         return;
       }
@@ -489,13 +502,13 @@ class MojoPerceptionAPI {
       // Get the video created in the init
       var video = document.getElementById(this.videoSectionName);
       if (video === undefined) {
-        console.warn("No video element, maybe a pb during initialization");
+        console.log("🔴 No video element, maybe a pb during initialization");
         return;
       }
 
       // Check if model already loaded
       if (this.model == null || this.modelLoaded == false) {
-        console.debug("model not loaded yet");
+        console.log("🔴 model not loaded yet");
         return;
       }
 
@@ -511,7 +524,6 @@ class MojoPerceptionAPI {
       if (this.sending == false) {
         return;
       }
-
       const predictions = await this.model.estimateFaces({
         input: video,
       });
@@ -519,6 +531,7 @@ class MojoPerceptionAPI {
       if (predictions.length > 0) {
         // If we find a face, process it
         var face = predictions[0];
+        this.noseX = face.scaledMesh[6][0];
         if (face.faceInViewConfidence > 0.95) {
           this.emitFacemesh(face.scaledMesh);
         } else {
@@ -618,7 +631,6 @@ class MojoPerceptionAPI {
 
       /// turn off the camera
       await this.releaseCamera();
-
       return true;
     } catch (e) {
       this.onErrorCallback(e);
@@ -643,18 +655,20 @@ export var initMojoPerception = function (
   port,
   user_namespace
 ) {
-  try {
-    var initilizeMojoPerception = new MojoPerceptionAPI(
-      auth_token,
-      host,
-      port,
-      user_namespace
-    );
-    initilizeMojoPerception.init();
-    return initilizeMojoPerception;
-  } catch (e) {
-    console.error("Error while initializing MojoPerceptionAPI : " + e);
-  }
+  return new Promise(async (resolve, reject) => {
+    try {
+      var initilizeMojoPerception = new MojoPerceptionAPI(
+        auth_token,
+        host,
+        port,
+        user_namespace
+      );
+      await initilizeMojoPerception.init();
+      resolve(initilizeMojoPerception);
+    } catch (e) {
+      reject(e);
+    }
+  });
 };
 
 if (typeof window !== "undefined") {

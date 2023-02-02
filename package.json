@@ -1,6 +1,6 @@
 {
   "name": "mojo-perception",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Mojo Perception Javascript API",
   "keywords": [
     "emotion",
@@ -20,7 +20,7 @@
     "type": "git",
     "url": "https://github.com/hoomano/mojo-perception-js"
   },
-  "main": "mojo-perception.js",
+  "main": "src/index.js",
   "scripts": {
     "build": "rollup -c",
     "build:watch": "rollup -c -w",
