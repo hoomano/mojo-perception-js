@@ -1,10 +1,11 @@
-# Mojo Perception Javascript API
+# [DEPRECATED] Mojo Perception Javascript API
+
+⚠️ Unfortunately, this repository is no longer maintained as it has been moved to internal project. We are sorry for the inconvenience.
 
 Use Mojo Perception API as a Javascript module both for web and Node.js applications.
 
 
 ## Installation
-
 
 If you use `npm`, install mojo-perception-js module:
 ```
